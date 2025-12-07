@@ -1,4 +1,4 @@
-from board import Location
+from assets.location import Location
 
 class Board():
     def __init__(self, time:int = 6, condition:str = None, timeConditions:dict = dict()):
@@ -52,3 +52,9 @@ class Board():
         """
         for location in self.times.values():
             location.clear()
+
+    def __str__(self):
+        board = ""
+        for time in range(1, self.time+1):
+            board += f"{time}:{self.times[time]} \n"
+        return board

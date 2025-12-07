@@ -76,3 +76,11 @@ class Hand():
         Clear the hand by removing all cards
         """
         self.hand = deque()
+
+    def __str__(self):
+        hand = ""
+        for card in self.hand:
+            color = card[0]
+            number = card[1]
+            hand += f"{number}{color[0].upper()} "
+        return hand

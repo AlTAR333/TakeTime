@@ -73,3 +73,11 @@ class Location():
         else :
             self.cards = deque()
             self.size = 0
+
+    def __str__(self):
+        location = ""
+        for card in self.cards:
+            color = card[0]
+            number = card[1]
+            location += f"{number}{color[0].upper()} "
+        return location

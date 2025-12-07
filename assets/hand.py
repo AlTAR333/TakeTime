@@ -43,9 +43,11 @@ class Hand():
         if instruction == "random":
             card = self.hand.remove(random.choice(self.hand))
         elif instruction == "highest":
-            card = self.hand.remove(max(self.hand, key=lambda x: x[1]))
+            card = max(self.hand, key=lambda x: x[1])
+            self.hand.remove(card)
         elif instruction == "lowest":
-            card = self.hand.remove(max(self.hand, key=lambda x: x[1]))
+            card = min(self.hand, key=lambda x: x[1])
+            self.hand.remove(card)
         elif instruction == "top":
             card = self.hand.pop()
         elif instruction == "bottom":

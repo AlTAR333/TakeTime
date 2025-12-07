@@ -6,8 +6,8 @@ class Deck():
         """
         Creates an instance of Deck, and calls self.create()
         
-        :param colors: Set of the different possible colors (black and white if blank)
-        :param numbers: Set of the different possible numbers (1-12 if blank)
+        :param colors: set of the different possible colors (black and white if blank)
+        :param numbers: set of the different possible numbers (1-12 if blank)
         """
         self.colors = colors
         self.numbers = numbers

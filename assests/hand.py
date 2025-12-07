@@ -9,6 +9,15 @@ class Hand():
         self.hand = deque()
         self.size = 0 # Size of the hand
 
+    def setCards(self, cards:list):
+        """
+        Clear the hand and add the new ones
+
+        :param cards: list of the cards
+        """
+        self.hand = deque(cards)
+        self.size = len(self.cards)
+
     def addCard(self, card:tuple) -> None:
         """
         Add a given card to the top of the hand
@@ -61,3 +70,9 @@ class Hand():
             random.shuffle(self.hand)
         else :
             raise "Invalid order argument for sort() method."
+
+    def clear(self):
+        """
+        Clear the hand by removing all cards
+        """
+        self.hand = deque()

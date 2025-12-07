@@ -27,16 +27,16 @@ class Position():
         """
         Add a card to the position
         
-        :param card: tuple represening the added card
+        :param card: tuple representing the added card
         """
         self.cards.append(card)
         self.size += 1
 
-    def removeCard(self, instruction:str = "random") -> tuple:
+    def removeCard(self, instruction:str = "top") -> tuple:
         """
         Remove a card from the position, depending on instruction
 
-        :param instruction: string used to determine the method of removal (random if blank),
+        :param instruction: string used to determine the method of removal (top if blank),
                             "random" -> pop randomly
                             "highest" -> pop highest card in hand
                             "lowest" -> pop lowest card in hand

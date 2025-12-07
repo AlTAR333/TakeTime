@@ -84,3 +84,9 @@ class Hand():
             number = card[1]
             hand += f"{number}{color[0].upper()} "
         return hand
+    
+    def getMax(self) -> int:
+        """
+        Returns the value of the highest card in hand
+        """
+        return max(self.hand, key=lambda x: x[1])[1]

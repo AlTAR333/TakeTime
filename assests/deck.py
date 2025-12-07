@@ -2,16 +2,19 @@ import random
 
 class Deck():
 
-    def __init__(self, colors:set = {"black","white"}, numbers:set = {i for i in range(1, 13)}):
+    def __init__(self, colors:set = {"black","white"}, numbers:set = {i for i in range(1, 13)}, shuffled:bool = False):
         """
         Creates an instance of Deck, and calls self.create()
         
         :param colors: set of the different possible colors (black and white if blank)
         :param numbers: set of the different possible numbers (1-12 if blank)
+        :param numbers: shuffle the deck if True (False if blank)
         """
         self.colors = colors
         self.numbers = numbers
         self.create()
+        if shuffled :
+            self.shuffle()
         
 
     def create(self):

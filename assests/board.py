@@ -1,4 +1,4 @@
-from board import Position
+from board import Location
 
 class Board():
     def __init__(self, time:int = 6, condition:str = None, timeConditions:dict = dict()):
@@ -17,26 +17,26 @@ class Board():
 
     def create(self):
         """
-        Creates the board, with each Position and their condition
+        Creates the board, with each Location and their condition
         """
         self.times = dict()
         for i in range(1, self.time+1):
-            self.times[i] = Position(condition=self.timeConditions.get(i, ""))
+            self.times[i] = Location(condition=self.timeConditions.get(i, ""))
 
-    def addCardtoPos(self, position:int, card:tuple):
+    def addCardtoPos(self, location:int, card:tuple):
         """
-        Add a card to a position
+        Add a card to a location
 
-        :param position: integer representing the position
+        :param location: integer representing the location
         :param card: tuple representing the added card
         """
-        self.times[position].addCard(card)
+        self.times[location].addCard(card)
 
-    def removeCardfromPos(self, position:int, instruction:str = "top"):
+    def removeCardfromPos(self, location:int, instruction:str = "top"):
         """
-        Add a card to a position
+        Add a card to a location
 
-        :param position: integer representing the position
+        :param location: integer representing the location
         :param instruction: string used to determine the method of removal (top if blank),
                             "random" -> pop randomly
                             "highest" -> pop highest card in hand
@@ -44,11 +44,11 @@ class Board():
                             "top" -> pop top card, most left card
                             "bottom" -> pop bottom card, most right card
         """
-        self.times[position].removeCard(instruction)
+        self.times[location].removeCard(instruction)
 
     def clear(self):
         """
-        Clear all the positions
+        Clear all the locations
         """
-        for position in self.times.values():
-            position.clear()
+        for location in self.times.values():
+            location.clear()

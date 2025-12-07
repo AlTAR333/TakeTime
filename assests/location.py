@@ -1,12 +1,12 @@
 import random
 from collections import deque
 
-class Position():
+class Location():
     def __init__(self, cards:list = [], condition:str = ""):
         """
-        Creates an instance of Position
+        Creates an instance of Location
 
-        :param cards: list of cards already placed on that position
+        :param cards: list of cards already placed on that location
         :param condition: 
         """
         self.condition = condition
@@ -16,7 +16,7 @@ class Position():
 
     def setCards(self, cards):
         """
-        Clear the position and add the new ones
+        Clear the location and add the new ones
 
         :param cards: list of the cards
         """
@@ -25,7 +25,7 @@ class Position():
 
     def addCard(self, card):
         """
-        Add a card to the position
+        Add a card to the location
         
         :param card: tuple representing the added card
         """
@@ -34,7 +34,7 @@ class Position():
 
     def removeCard(self, instruction:str = "top") -> tuple:
         """
-        Remove a card from the position, depending on instruction
+        Remove a card from the location, depending on instruction
 
         :param instruction: string used to determine the method of removal (top if blank),
                             "random" -> pop randomly
@@ -63,7 +63,7 @@ class Position():
 
     def clear(self, reset:bool = False):
         """
-        Clear the position by removing all cards
+        Clear the location by removing all cards
 
         :param reset: If true, set the cards to the initial cards
         """

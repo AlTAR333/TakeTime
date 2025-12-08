@@ -37,11 +37,13 @@ class Hand():
                             "lowest" -> pop lowest card in hand
                             "top" -> pop top card, most left card
                             "bottom" -> pop bottom card, most right card
+                            tuple -> remove this specific card
         """
         assert len(self.hand) > 0, "Attempt to remove card from an empty hand"
 
         if instruction == "random":
-            card = self.hand.remove(random.choice(self.hand))
+            card = random.choice(self.hand)
+            self.hand.remove(card)
         elif instruction == "highest":
             card = max(self.hand, key=lambda x: x[1])
             self.hand.remove(card)
@@ -52,8 +54,14 @@ class Hand():
             card = self.hand.pop()
         elif instruction == "bottom":
             card = self.hand.popleft()
+        elif isinstance(instruction, tuple):
+            if instruction in self.hand:
+                card = instruction
+                self.hand.remove(card)
+            else:
+                raise ValueError(f"Card {instruction} not found in hand.")
         else :
-            raise "Invalid instruction argument for removeCard() method."
+            raise ValueError("Invalid instruction argument for removeCard() method.")
         
         self.size -= 1
         return card

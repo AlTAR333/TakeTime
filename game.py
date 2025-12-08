@@ -3,6 +3,8 @@ from assets.deck import Deck
 from assets.location import Location
 from assets.hand import Hand
 import math
+import os
+import re
 
 class Game():
     def __init__(self):
@@ -51,18 +53,96 @@ class Game():
         # First strategy
         if strategy == "1":
             if turn == 0: # Player with the highest card has to start
-                max = 0
+                max_value = 0
                 for player, hand in self.hands.items():
                     handMax = hand.getMax()
-                    if handMax > max :
-                        max = handMax
+                    if handMax > max_value :
+                        max_value = handMax
                         self.currentPlayer = player
                 self.playerPointer = self.playersNames.index(self.currentPlayer)
-            card = self.hands[self.currentPlayer].removeCard("highest") # Player plays his highest card
+
+            # Player plays his highest card
+            card = self.hands[self.currentPlayer].removeCard("highest") 
             value = card[1]
-            self.board.addCardtoPos(math.ceil(value/2), card)
+
+            # Place card on the correct location
+            base_location = math.ceil(value / 2)
+            is_high_card = (value % 2 == 0)
+            direction = 1 if is_high_card else -1  # +1 = clockwise, -1 = counter-clockwise
+            location = base_location
+            for _ in range(self.board.time*2):
+                if self.board.times[location].size < 2:
+                    self.board.addCardtoPos(location, card)
+                    break
+                next_location = location + direction
+                # if next would go out of bounds, reverse direction
+                if not (1 <= next_location <= self.board.time):
+                    direction = -direction
+                    next_location = location + direction
+                location = next_location
+
+        elif strategy == "2":
+            if turn == 0:
+                # Player with highest card starts
+                max_value = 0
+                for player, hand in self.hands.items():
+                    handMax = hand.getMax()
+                    if handMax > max_value:
+                        max_value = handMax
+                        self.currentPlayer = player
+                self.playerPointer = self.playersNames.index(self.currentPlayer)
+
+            hand = self.hands[self.currentPlayer]
+
+            # Compute ideal sums based on all remaining cards
+            remaining_cards = [card for h in self.hands.values() for card in h.hand]
+            total_remaining = sum(card[1] for card in remaining_cards)
+            ideal_sum_per_location = total_remaining / self.board.time
+
+            best_card = None
+            best_location = None
+            best_score = float("inf")
+
+            for card in hand.hand:
+                value = card[1]
+                for loc_index in range(1, self.board.time + 1):
+                    loc = self.board.times[loc_index]
+                    if loc.size >= 2:
+                        continue  # Skip full locations
+
+                    # Simulate placement
+                    temp_sums = [self.board.times[i].getSum() for i in range(1, self.board.time + 1)]
+                    temp_sums[loc_index - 1] += value
+
+                    # Score = sum of absolute differences to ideal
+                    score = sum(abs(s - ideal_sum_per_location) for s in temp_sums)
+
+                    # Penalize locations that will exceed max size
+                    if loc.size + 1 > 2:
+                        score += 100  # large penalty
+
+                    if score < best_score:
+                        best_score = score
+                        best_card = card
+                        best_location = loc_index
+
+            # Play the best card
+            hand.removeCard(best_card)
+            self.board.addCardtoPos(best_location, best_card)
+
         else :
             raise "Strategy not found"
+
+    def saveGame(self, state, round):
+        with open(self.results_filename, "a", encoding="utf-8") as f:
+            f.write(f"-----ROUND {round+1}-----\n")
+            f.write("HANDS\n")
+            for player, hand in self.hands.items():
+                f.write(f"{player} : {hand}\n")
+            f.write("BOARD\n")
+            f.write(f"{self.board}")
+            f.write(f"STATUS\n")
+            f.write(f"{state}\n\n")
 
     def main(self) -> None:
         # Players
@@ -74,18 +154,27 @@ class Game():
                 playerName = input(f"Player {i} : ")
                 self.playersNames.append(playerName)
         else :
-            self.playersNames = [str(i) for i in range(1, self.players+1)]
-        
+            self.playersNames = ["P"+str(i) for i in range(1, self.players+1)]
 
-        # Preset load
+        # Preset and Strategy load
         self.preset = input("What preset do you want to load : ")
         self.presets(self.preset)
-        
         self.strategy = input("What strategy do you want to use : ")
+        
+        # Auto-increment results filename - ChatGPT
+        existing_files = [f for f in os.listdir() if re.match(r"results\d+\.txt$", f)]
+        if existing_files:
+            # Extract numbers and find max
+            numbers = [int(re.findall(r"results(\d+)\.txt", f)[0]) for f in existing_files]
+            next_num = max(numbers) + 1
+        else:
+            next_num = 1
+
+        self.results_filename = f"results{next_num}.txt"
         
         # Start Game
         win = 0
-        for round in range(3):
+        for round in range(10):
             self.dealHands()
             print("=============================")
             for turn in range(12):
@@ -98,16 +187,20 @@ class Game():
             print("-----FINAL-----")
             self.printHands()
             self.printBoard()
-            if self.board.win():
+            if self.board.checkConditions():
                 win += 1
+                state = "Won"
+            else :
+                state = "Lost"
+            self.saveGame(state, round)
             self.deck.create()
             self.deck.shuffle()
             self.board.clear()
             for hand in self.hands.values():
                 hand.clear()
+        print(f"Total round won : {win}")
 
 
-    
 
 game = Game()
 game.main()

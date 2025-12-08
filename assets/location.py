@@ -43,14 +43,17 @@ class Location():
                             "top" -> pop top card, most left card
                             "bottom" -> pop bottom card, most right card
         """
-        assert len(self.hand) > 0, "Attempt to remove card from an empty hand"
+        assert len(self.cards) > 0, "Attempt to remove card from an empty hand"
 
         if instruction == "random":
-            card = self.cards.remove(random.choice(self.hand))
+            card = random.choice(self.cards)
+            self.cards.remove(card)
         elif instruction == "highest":
-            card = self.cards.remove(max(self.hand, key=lambda x: x[1]))
+            card = max(self.cards, key=lambda x: x[1])
+            self.cards.remove(card)
         elif instruction == "lowest":
-            card = self.cards.remove(max(self.hand, key=lambda x: x[1]))
+            card = min(self.cards, key=lambda x: x[1])
+            self.cards.remove(card)
         elif instruction == "top":
             card = self.cards.pop()
         elif instruction == "bottom":
@@ -81,3 +84,16 @@ class Location():
             number = card[1]
             location += f"{number}{color[0].upper()} "
         return location
+    
+    def getSum(self):
+        """
+        Returns the sum of the values of the cards
+        """
+        return sum(x[1] for x in self.cards)
+    
+    def checkCondition(self):
+        """
+        Checks if the specific condition is respected
+        """
+        #TODO Add all the conditions and tests
+        return True

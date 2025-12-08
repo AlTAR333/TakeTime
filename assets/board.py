@@ -56,5 +56,27 @@ class Board():
     def __str__(self):
         board = ""
         for time in range(1, self.time+1):
-            board += f"{time}:{self.times[time]} \n"
+            board += f"{time}: {self.times[time]} (count={self.times[time].size}, sum={self.times[time].getSum()})\n"
+            # f"{time}: {self.times[time]} \n"
         return board
+    
+    def checkConditions(self) -> bool:
+        """
+        Check if all the conditions are respected
+        """
+        #TODO Add all the conditions and tests
+        locationSums = []
+        maxSumLocations = {i : 24 for i in range(1, self.time+1)} # Limit each location to a sum of 24
+        minCardLocation = {i : 1 for i in range(1, self.time+1)} # Minimum number of cards per location
+        for time, location in self.times.items(): # Test the global condition for every location
+            locationSum = location.getSum()
+            locationSums.append(locationSum)
+            if locationSum > maxSumLocations[time]:
+                return False
+            locationSize = location.size
+            if locationSize < minCardLocation[time]:
+                return False
+            if not location.checkCondition():
+                return False
+
+        return locationSums == sorted(locationSums)

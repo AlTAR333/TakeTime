@@ -162,15 +162,15 @@ class Game():
         self.strategy = input("What strategy do you want to use : ")
         
         # Auto-increment results filename - ChatGPT
-        existing_files = [f for f in os.listdir() if re.match(r"results\d+\.txt$", f)]
+        existing_files = [f for f in os.listdir("tests results/") if re.match(r"results\d+\.txt$", f)]
         if existing_files:
             # Extract numbers and find max
-            numbers = [int(re.findall(r"results(\d+)\.txt", f)[0]) for f in existing_files]
+            numbers = [int(re.findall(r"tests results/results(\d+)\.txt", f)[0]) for f in existing_files]
             next_num = max(numbers) + 1
         else:
             next_num = 1
 
-        self.results_filename = f"results{next_num}.txt"
+        self.results_filename = f"tests results/results{next_num}.txt"
         
         # Start Game
         win = 0

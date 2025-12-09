@@ -170,23 +170,7 @@ class Game():
             f.write(f"Total round won : {win}/{self.num_round}\n")
             f.write(f"Success rate : {round(win/self.num_round * 100, 2)}%")
 
-    def main(self) -> None:
-        # Players
-        # self.players = int(input("Number of player : "))
-        # self.playerConfig = input("Do you want to name the players (Y/N) : ")
-        # if self.playerConfig == "Y":
-        #     self.playersNames = []
-        #     for i in range(1, self.players+1):
-        #         playerName = input(f"Player {i} : ")
-        #         self.playersNames.append(playerName)
-        # else :
-        #     self.playersNames = ["P"+str(i) for i in range(1, self.players+1)]
-
-        # Preset and Strategy load
-        # self.preset = input("What preset do you want to load : ")
-        # self.presets(self.preset)
-        # self.strategy = input("What strategy do you want to use : ")
-        
+    def main(self) -> None:        
         # Auto-increment results filename - ChatGPT
         existing_files = [f for f in os.listdir("tests results/") if re.match(r"results\d+\.txt$", f)]
         if existing_files:

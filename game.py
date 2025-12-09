@@ -2,9 +2,12 @@ from assets.board import Board
 from assets.deck import Deck
 from assets.location import Location
 from assets.hand import Hand
+from configwindow import ConfigWindow
+import tkinter as tk
 import math
 import os
 import re
+import random
 
 class Game():
     def __init__(self):
@@ -82,58 +85,40 @@ class Game():
                 location = next_location
 
         elif strategy == "2":
-            if turn == 0:
-                # Player with highest card starts
-                max_value = 0
-                for player, hand in self.hands.items():
-                    handMax = hand.getMax()
-                    if handMax > max_value:
-                        max_value = handMax
-                        self.currentPlayer = player
-                self.playerPointer = self.playersNames.index(self.currentPlayer)
+            if turn == 0: # Random player starts
+                self.playerPointer = random.randint(0, self.players-1)
+                self.currentPlayer = self.playersNames[self.playerPointer]
 
-            hand = self.hands[self.currentPlayer]
+            # Player plays his highest card
+            card = self.hands[self.currentPlayer].removeCard("random") 
+            value = card[1]
 
-            # Compute ideal sums based on all remaining cards
-            remaining_cards = [card for h in self.hands.values() for card in h.hand]
-            total_remaining = sum(card[1] for card in remaining_cards)
-            ideal_sum_per_location = total_remaining / self.board.time
-
-            best_card = None
-            best_location = None
-            best_score = float("inf")
-
-            for card in hand.hand:
-                value = card[1]
-                for loc_index in range(1, self.board.time + 1):
-                    loc = self.board.times[loc_index]
-                    if loc.size >= 2:
-                        continue  # Skip full locations
-
-                    # Simulate placement
-                    temp_sums = [self.board.times[i].getSum() for i in range(1, self.board.time + 1)]
-                    temp_sums[loc_index - 1] += value
-
-                    # Score = sum of absolute differences to ideal
-                    score = sum(abs(s - ideal_sum_per_location) for s in temp_sums)
-
-                    # Penalize locations that will exceed max size
-                    if loc.size + 1 > 2:
-                        score += 100  # large penalty
-
-                    if score < best_score:
-                        best_score = score
-                        best_card = card
-                        best_location = loc_index
-
-            # Play the best card
-            hand.removeCard(best_card)
-            self.board.addCardtoPos(best_location, best_card)
+            # Place card on the correct location
+            base_location = math.ceil(value / 2)
+            is_high_card = (value % 2 == 0)
+            direction = 1 if is_high_card else -1  # +1 = clockwise, -1 = counter-clockwise
+            location = base_location
+            for _ in range(self.board.time*2):
+                if self.board.times[location].size < 2:
+                    self.board.addCardtoPos(location, card)
+                    break
+                next_location = location + direction
+                # if next would go out of bounds, reverse direction
+                if not (1 <= next_location <= self.board.time):
+                    direction = -direction
+                    next_location = location + direction
+                location = next_location
 
         else :
             raise "Strategy not found"
 
-    def saveGame(self, state, round):
+    def saveGame(self, state:str, round:int):
+        """
+        Write the final state of a game onto the results file
+
+        :param state: string representing wether the game was won or lost
+        :param round: integer representing the number of the round
+        """
         with open(self.results_filename, "a", encoding="utf-8") as f:
             f.write(f"-----ROUND {round+1}-----\n")
             f.write("HANDS\n")
@@ -144,28 +129,40 @@ class Game():
             f.write(f"STATUS\n")
             f.write(f"{state}\n\n")
 
+    def saveSummary(self, win:int):
+        """
+        Write the chosen preset, strategy, and number of wins onto the results file
+
+        :param win: integer representing the number of win
+        """
+        with open(self.results_filename, "a", encoding="utf-8") as f:
+            f.write(f"Chosen preset : {self.preset}\n")
+            f.write(f"Strategy used : {self.strategy}\n")
+            f.write(f"Total round won : {win}/{self.num_round}\n")
+            f.write(f"Succes rate : {round(win/self.num_round * 100, 2)}%")
+
     def main(self) -> None:
         # Players
-        self.players = int(input("Number of player : "))
-        self.playerConfig = input("Do you want to name the players (Y/N) : ")
-        if self.playerConfig == "Y":
-            self.playersNames = []
-            for i in range(1, self.players+1):
-                playerName = input(f"Player {i} : ")
-                self.playersNames.append(playerName)
-        else :
-            self.playersNames = ["P"+str(i) for i in range(1, self.players+1)]
+        # self.players = int(input("Number of player : "))
+        # self.playerConfig = input("Do you want to name the players (Y/N) : ")
+        # if self.playerConfig == "Y":
+        #     self.playersNames = []
+        #     for i in range(1, self.players+1):
+        #         playerName = input(f"Player {i} : ")
+        #         self.playersNames.append(playerName)
+        # else :
+        #     self.playersNames = ["P"+str(i) for i in range(1, self.players+1)]
 
         # Preset and Strategy load
-        self.preset = input("What preset do you want to load : ")
-        self.presets(self.preset)
-        self.strategy = input("What strategy do you want to use : ")
+        # self.preset = input("What preset do you want to load : ")
+        # self.presets(self.preset)
+        # self.strategy = input("What strategy do you want to use : ")
         
         # Auto-increment results filename - ChatGPT
         existing_files = [f for f in os.listdir("tests results/") if re.match(r"results\d+\.txt$", f)]
         if existing_files:
             # Extract numbers and find max
-            numbers = [int(re.findall(r"tests results/results(\d+)\.txt", f)[0]) for f in existing_files]
+            numbers = [int(re.findall(r"results(\d+)\.txt", f)[0]) for f in existing_files]
             next_num = max(numbers) + 1
         else:
             next_num = 1
@@ -174,7 +171,8 @@ class Game():
         
         # Start Game
         win = 0
-        for round in range(10):
+        self.num_round = 1000 #TODO modifiable in the configWindow
+        for round in range(self.num_round):
             self.dealHands()
             print("=============================")
             for turn in range(12):
@@ -199,8 +197,26 @@ class Game():
             for hand in self.hands.values():
                 hand.clear()
         print(f"Total round won : {win}")
+        self.saveSummary(win)
 
 
 
-game = Game()
-game.main()
+if __name__ == "__main__":
+    root = tk.Tk()
+    config_window = ConfigWindow(root)
+    root.mainloop()
+
+    # collect the settings
+    config = config_window.config
+
+    game = Game()
+    game.players = config["num_players"]
+    game.playersNames = config["players"] if config["players"] else [
+        f"P{i}" for i in range(1, config["num_players"]+1)
+    ]
+    game.preset = config["preset"]
+    game.strategy = config["strategy"]
+
+    game.presets(game.preset)
+    game.main()
+

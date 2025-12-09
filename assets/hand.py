@@ -95,8 +95,9 @@ class Hand():
             hand += f"{number}{color[0].upper()} "
         return hand
     
-    def getMax(self) -> int:
+    def getMax(self) -> tuple:
         """
-        Returns the value of the highest card in hand
+        Returns the highest card in hand.
+        If tie, chooses randomly
         """
-        return max(self.hand, key=lambda x: x[1])[1]
+        return max(self.hand, key=lambda x: x[1])

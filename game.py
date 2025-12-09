@@ -58,7 +58,7 @@ class Game():
             if turn == 0: # Player with the highest card has to start
                 max_value = 0
                 for player, hand in self.hands.items():
-                    handMax = hand.getMax()
+                    handMax = hand.getMax()[1]
                     if handMax > max_value :
                         max_value = handMax
                         self.currentPlayer = player

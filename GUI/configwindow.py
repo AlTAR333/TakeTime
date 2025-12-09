@@ -13,6 +13,7 @@ class ConfigWindow:
         self.player_names = []
         self.preset = tk.StringVar(value="1")
         self.strategy = tk.StringVar(value="1")
+        self.num_rounds = tk.IntVar(value=1000)
 
         # Top: number of players
         frame_players = ttk.LabelFrame(root, text="Players")
@@ -44,6 +45,14 @@ class ConfigWindow:
         ttk.Label(frame_strategy, text="Select strategy:").pack(side="left", padx=5)
         ttk.Combobox(frame_strategy, textvariable=self.strategy, values=["1", "2"],
                      state="readonly", width=10).pack(side="left")
+        
+        # Number of rounds
+        frame_rounds = ttk.LabelFrame(root, text="Rounds")
+        frame_rounds.pack(fill="x", padx=10, pady=10)
+
+        ttk.Label(frame_rounds, text="Number of Rounds :").grid(row=0, column=0, sticky="w")
+        ttk.Spinbox(frame_rounds, from_=1, to=5000, textvariable=self.num_rounds,
+                    width=5).grid(row=0, column=1)
 
         # Start button
         ttk.Button(root, text="Start Game", command=self.start_game).pack(pady=10)
@@ -71,7 +80,8 @@ class ConfigWindow:
             "use_names": self.name_players.get(),
             "players": [v.get() for v in self.player_names] if self.name_players.get() else None,
             "preset": self.preset.get(),
-            "strategy": self.strategy.get()
+            "strategy": self.strategy.get(),
+            "num_rounds": self.num_rounds.get()
         }
         self.root.quit()
         self.root.destroy()

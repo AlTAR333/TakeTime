@@ -2,12 +2,13 @@ from assets.board import Board
 from assets.deck import Deck
 from assets.location import Location
 from assets.hand import Hand
-from configwindow import ConfigWindow
+from GUI.configwindow import ConfigWindow
 import tkinter as tk
 import math
 import os
 import re
 import random
+from datetime import datetime
 
 class Game():
     def __init__(self):
@@ -84,7 +85,34 @@ class Game():
                     next_location = location + direction
                 location = next_location
 
+        # Second Strategy, same as first but play random card instead of highest
         elif strategy == "2":
+            if turn == 0: # Random player starts
+                self.playerPointer = random.randint(0, self.players-1)
+                self.currentPlayer = self.playersNames[self.playerPointer]
+
+            # Player plays his highest card
+            card = self.hands[self.currentPlayer].removeCard("random") 
+            value = card[1]
+
+            # Place card on the correct location
+            base_location = math.ceil(value / 2)
+            is_high_card = (value % 2 == 0)
+            direction = 1 if is_high_card else -1  # +1 = clockwise, -1 = counter-clockwise
+            location = base_location
+            for _ in range(self.board.time*2):
+                if self.board.times[location].size < 2:
+                    self.board.addCardtoPos(location, card)
+                    break
+                next_location = location + direction
+                # if next would go out of bounds, reverse direction
+                if not (1 <= next_location <= self.board.time):
+                    direction = -direction
+                    next_location = location + direction
+                location = next_location
+
+        # Third Strategy
+        elif strategy == "3":
             if turn == 0: # Random player starts
                 self.playerPointer = random.randint(0, self.players-1)
                 self.currentPlayer = self.playersNames[self.playerPointer]
@@ -136,10 +164,11 @@ class Game():
         :param win: integer representing the number of win
         """
         with open(self.results_filename, "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.now()}]")
             f.write(f"Chosen preset : {self.preset}\n")
             f.write(f"Strategy used : {self.strategy}\n")
             f.write(f"Total round won : {win}/{self.num_round}\n")
-            f.write(f"Succes rate : {round(win/self.num_round * 100, 2)}%")
+            f.write(f"Success rate : {round(win/self.num_round * 100, 2)}%")
 
     def main(self) -> None:
         # Players
@@ -171,7 +200,6 @@ class Game():
         
         # Start Game
         win = 0
-        self.num_round = 1000 #TODO modifiable in the configWindow
         for round in range(self.num_round):
             self.dealHands()
             print("=============================")
@@ -216,6 +244,7 @@ if __name__ == "__main__":
     ]
     game.preset = config["preset"]
     game.strategy = config["strategy"]
+    game.num_round = config["num_rounds"]
 
     game.presets(game.preset)
     game.main()

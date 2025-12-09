@@ -101,3 +101,10 @@ class Hand():
         If tie, chooses randomly
         """
         return max(self.hand, key=lambda x: x[1])
+    
+    def getMin(self) -> tuple:
+        """
+        Returns the lowest card in hand.
+        If tie, chooses randomly
+        """
+        return min(self.hand, key=lambda x: x[1])

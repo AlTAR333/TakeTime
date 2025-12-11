@@ -3,6 +3,7 @@ from assets.deck import Deck
 from assets.location import Location
 from assets.hand import Hand
 from GUI.configwindow import ConfigWindow
+from GUI.simulationwindow import SimulationWindow
 import tkinter as tk
 import math
 import os
@@ -43,17 +44,25 @@ class Game():
             self.playerPointer = 0
         self.currentPlayer = self.playersNames[self.playerPointer]
 
-    def presets(self, preset:int = 1) -> None:
+    def presets(self, preset:str = 1) -> None:
         """
-        Basic game, 24 max per location
+        Create the instances of Deck and Board depending on the chosen preset
+
+        :param preset: String representing the chosen preset
         """
         if preset == "1":
             self.deck = Deck(shuffled = True)
             self.board = Board()
         else :
-            raise "Preset not found"
+            raise f"Preset not found : {self.preset}"
 
-    def strategies(self, strategy, turn):
+    def strategies(self, strategy:str, turn:int) -> None:
+        """
+        Play a turn depending on the chosen strategy
+        
+        :param strategy: String representing the chosen strategy
+        :param turn: Integer representing the current turn(0-12)
+        """
         # First strategy
         if strategy == "1":
             if turn == 0: # Player with the highest card has to start
@@ -138,17 +147,25 @@ class Game():
                 location = next_location
 
         else :
-            raise "Strategy not found"
+            raise f"Strategy not found : {self.strategy}"
 
-    def saveGame(self, state:str, round:int):
+    def saveGame(self, won:bool, round:int = None) -> None:
         """
         Write the final state of a game onto the results file
 
         :param state: string representing wether the game was won or lost
         :param round: integer representing the number of the round
         """
+        if round :
+            round += 1
+        else :
+            round = "?"
+        if won:
+            state = "Won"
+        else :
+            state = "Lost"
         with open(self.results_filename, "a", encoding="utf-8") as f:
-            f.write(f"-----ROUND {round+1}-----\n")
+            f.write(f"-----ROUND {round}-----\n")
             f.write("HANDS\n")
             for player, hand in self.hands.items():
                 f.write(f"{player} : {hand}\n")
@@ -157,21 +174,23 @@ class Game():
             f.write(f"STATUS\n")
             f.write(f"{state}\n\n")
 
-    def saveSummary(self, win:int):
+    def saveSummary(self, win:int) -> None:
         """
         Write the chosen preset, strategy, and number of wins onto the results file
 
         :param win: integer representing the number of win
         """
         with open(self.results_filename, "a", encoding="utf-8") as f:
-            f.write(f"[{datetime.now()}]")
+            f.write(f"[{datetime.now()}]\n")
             f.write(f"Chosen preset : {self.preset}\n")
             f.write(f"Strategy used : {self.strategy}\n")
             f.write(f"Total round won : {win}/{self.num_round}\n")
             f.write(f"Success rate : {round(win/self.num_round * 100, 2)}%")
 
-    def main(self) -> None:        
-        # Auto-increment results filename - ChatGPT
+    def getResultsFilename(self) -> str:
+        """
+        Auto-increment results filename and return new one - ChatGPT
+        """
         existing_files = [f for f in os.listdir("tests results/") if re.match(r"results\d+\.txt$", f)]
         if existing_files:
             # Extract numbers and find max
@@ -179,35 +198,53 @@ class Game():
             next_num = max(numbers) + 1
         else:
             next_num = 1
+        return f"tests results/results{next_num}.txt"
 
-        self.results_filename = f"tests results/results{next_num}.txt"
-        
-        # Start Game
-        win = 0
-        for round in range(self.num_round):
-            self.dealHands()
+    def clearGame(self) -> None:
+        """
+        Reset the deck and clears the board and the hands.
+        """
+        self.deck.create()
+        self.deck.shuffle()
+        self.board.clear()
+        for hand in self.hands.values():
+            hand.clear()
+
+    def runOneRound(self, display=False) -> bool:
+        """
+        Simulate a round of the game with the current preset and strategy.
+        Returns True if the game was won, else False
+
+        :param display: Boolean, if True, prints the game situation at each turn
+        """
+        self.dealHands()
+        if display :
             print("=============================")
-            for turn in range(12):
+        for turn in range(12):
+            if display :
                 print("----------")
                 self.printHands()
                 self.printBoard()
-                self.strategies(self.strategy, turn)
+            self.strategies(self.strategy, turn)
+            if display :
                 print(f"Next player : {self.currentPlayer}")
-                self.changeCurrentPlayer()
+            self.changeCurrentPlayer()
+        if display :
             print("-----FINAL-----")
             self.printHands()
             self.printBoard()
-            if self.board.checkConditions():
+
+        return self.board.checkConditions()
+
+    def main(self) -> None:
+        win = 0
+        for round in range(self.num_round):
+            gameState = self.runOneRound(display=True)
+            if gameState:
                 win += 1
-                state = "Won"
-            else :
-                state = "Lost"
-            self.saveGame(state, round)
-            self.deck.create()
-            self.deck.shuffle()
-            self.board.clear()
-            for hand in self.hands.values():
-                hand.clear()
+            self.saveGame(won=gameState, round=round)
+            self.clearGame()
+            
         print(f"Total round won : {win}")
         self.saveSummary(win)
 
@@ -229,7 +266,17 @@ if __name__ == "__main__":
     game.preset = config["preset"]
     game.strategy = config["strategy"]
     game.num_round = config["num_rounds"]
+    game.results_filename = game.getResultsFilename()
 
     game.presets(game.preset)
-    game.main()
+    # game.main()
+
+    # --- GUI Simulation ---
+    def run_one_round_callback():
+        result = game.runOneRound(display=True)
+        game.saveGame(won=result)
+        game.clearGame()
+        return result
+
+    SimulationWindow(config, run_one_round_callback, game)
 

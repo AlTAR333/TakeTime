@@ -16,6 +16,9 @@ class Game():
         pass
 
     def dealHands(self) -> None:
+        """
+        Deal the 12 cards to all of the players
+        """
         self.hands = {player : Hand() for player in self.playersNames}
         player_pointer = 0
         for _ in range(12):
@@ -30,15 +33,24 @@ class Game():
                 player_pointer = 0
 
     def printHands(self) -> None:
+        """
+        Print the hands of the players
+        """
         print("HANDS")
         for player, hand in self.hands.items():
             print(f"{player} : {hand}")
 
     def printBoard(self) -> None:
+        """
+        Print the board
+        """
         print("BOARD")
         print(f"{self.board}")
 
     def changeCurrentPlayer(self) -> None:
+        """
+        Pass the currentPlayer to the next one on the list
+        """
         self.playerPointer += 1
         if self.playerPointer == len(self.playersNames):
             self.playerPointer = 0
@@ -237,6 +249,9 @@ class Game():
         return self.board.checkConditions()
 
     def main(self) -> None:
+        """
+        Start the game and simulate the rounds
+        """
         win = 0
         for round in range(self.num_round):
             gameState = self.runOneRound(display=True)
@@ -271,7 +286,7 @@ if __name__ == "__main__":
     game.presets(game.preset)
     # game.main()
 
-    # --- GUI Simulation ---
+    # GUI Simulation
     def run_one_round_callback():
         result = game.runOneRound(display=True)
         game.saveGame(won=result)

@@ -1,4 +1,4 @@
-# Made by ChatGPT
+# Generated with ChatGPT - Modified by me
 import tkinter as tk
 from tkinter import ttk
 
@@ -6,6 +6,7 @@ class ConfigWindow:
     def __init__(self, root):
         self.root = root
         root.title("Take Time - Setup")
+        root.minsize(270, 290)
 
         # Variables
         self.num_players = tk.IntVar(value=3)
@@ -51,7 +52,7 @@ class ConfigWindow:
         frame_rounds.pack(fill="x", padx=10, pady=10)
 
         ttk.Label(frame_rounds, text="Number of Rounds :").grid(row=0, column=0, sticky="w")
-        ttk.Spinbox(frame_rounds, from_=1, to=5000, textvariable=self.num_rounds,
+        ttk.Spinbox(frame_rounds, from_=1, to=2000, textvariable=self.num_rounds,
                     width=5).grid(row=0, column=1)
 
         # Start button
@@ -60,6 +61,9 @@ class ConfigWindow:
         self.refresh_names()
 
     def refresh_names(self):
+        """
+        Refresh the names of the player, remove the empty space if turned off
+        """
         # Clear existing fields
         for widget in self.names_frame.winfo_children():
             widget.destroy()
@@ -67,13 +71,20 @@ class ConfigWindow:
         self.player_names = []
 
         if self.name_players.get():
+            self.names_frame.grid()
             for i in range(self.num_players.get()):
                 var = tk.StringVar(value=f"Player {i+1}")
                 self.player_names.append(var)
                 ttk.Label(self.names_frame, text=f"Player {i+1}:").grid(row=i, column=0, sticky="w")
                 ttk.Entry(self.names_frame, textvariable=var, width=15).grid(row=i, column=1)
 
+        else :
+            self.names_frame.grid_remove()
+
     def start_game(self):
+        """
+        Save all the selected infos and destroy the window
+        """
         # Collect final config
         self.config = {
             "num_players": self.num_players.get(),

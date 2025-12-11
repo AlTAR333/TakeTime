@@ -4,6 +4,11 @@ from tkinter import ttk
 import threading
 import time
 
+def center_window(window, width, height):
+    window.update_idletasks()
+    x = (window.winfo_screenwidth() // 2) - (width // 2)
+    y = (window.winfo_screenheight() // 2) - (height // 2)
+    window.geometry(f"{width}x{height}+{x}+{y}")
 
 class SimulationWindow:
     def __init__(self, config, simulate_callback, game):
@@ -16,6 +21,7 @@ class SimulationWindow:
         self.game = game
 
         self.root = tk.Tk()
+        center_window(self.root, 400, 200)
         self.root.title("Running Simulation...")
         self.root.geometry("400x200")
 
@@ -43,24 +49,37 @@ class SimulationWindow:
         wins = 0
 
         for i in range(total):
-            # Simulate one round
             if self.simulate_callback():
                 wins += 1
 
             progress_value = int((i + 1) / total * 100)
-
-            # Update UI (must use .after)
             self.root.after(0, self.update_progress, progress_value)
 
-        # When finished
         self.game.saveSummary(wins)
         win_rate = wins / total * 100
-        self.root.after(0, self.finish, wins, win_rate)
+
+        # Close the simulation window and open results
+        self.root.after(0, self.show_results_and_close, wins, total, win_rate)
 
     def update_progress(self, percent):
         self.progress["value"] = percent
         self.label_status.config(text=f"{percent}%")
 
-    def finish(self, wins, win_rate):
-        self.label_result.config(text=f"Simulation completed!\nWins: {wins}\nWin rate: {win_rate:.2f}%")
-        tk.Label(self.root, text="Simulation completed!", font=("Arial", 14)).pack(pady=10)
+    def show_results_and_close(self, wins, total, win_rate):
+        # Close the old window
+        self.root.destroy()
+
+        # Open the results window
+        results = tk.Tk()
+        center_window(results, 300, 200)
+        results.title("Simulation Results")
+        results.geometry("300x200")
+
+        ttk.Label(results, text="Simulation Results", font=("Arial", 14)).pack(pady=10)
+        ttk.Label(results, text=f"Total rounds: {total}").pack(pady=5)
+        ttk.Label(results, text=f"Wins: {wins}").pack(pady=5)
+        ttk.Label(results, text=f"Win rate: {win_rate:.2f}%").pack(pady=5)
+
+        ttk.Button(results, text="Close", command=results.destroy).pack(pady=15)
+
+        results.mainloop()
